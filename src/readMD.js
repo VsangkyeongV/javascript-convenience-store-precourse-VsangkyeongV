@@ -1,5 +1,4 @@
-const fs = require('fs');
-
+import fs from 'fs';
 // CSV 문자열을 파싱하는 함수
 const parseCSV = (data) => {
     const lines = data.trim().split('\n'); // 파일 내용을 줄 단위로 나눔
