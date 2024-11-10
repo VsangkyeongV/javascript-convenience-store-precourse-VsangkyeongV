@@ -11,14 +11,52 @@ export default class Inventory {
 
     buy(inputString) {
         const INPUT_OBJECTS = this.inputExchanger(inputString)
-        const QUANTITY_SUFFICIENT = this.quantityTest(INPUT_OBJECTS)
+        const QUANTITY_SUFFICIENT = this.quantityTest(INPUT_OBJECTS)//하나라도 false면 false
 
         if (!QUANTITY_SUFFICIENT) {//재고부족
             throw new Error()
         }
-        // if ()
+
+        promotion(INPUT_OBJECTS)
 
     }
+
+    promotion(INPUT_OBJECTS) {//[ { name: '콜라', quantity: 10 }, { name: '사이다', quantity: 3 } ]
+        INPUT_OBJECTS.forEach(OBJECT => {
+            this.promotionCheck(OBJECT)
+        })
+    }
+
+    promotionCheck(OBJECT) {//{ name: '콜라', quantity: 10 }
+        const PROMOTION_EXIST = this.isPromotionExist(OBJECT)
+
+        if (PROMOTION_EXIST) {//한 개씩
+            if (dayOver) {
+
+            } else if (!dayOver) {
+
+            }
+        }
+
+        if (!PROMOTION_EXIST) {
+
+        }
+    }
+
+    isPromotionExist(INPUT_OBJECT) {// object 하나 테스트
+        const MATCH_STRING = 'null'
+        let result
+        const product = this.products.find(OBJECT => OBJECT.name === INPUT_OBJECT.name)
+
+        result = product && product.promotion !== MATCH_STRING //맞으면 true
+        return result
+    }
+
+    saleDayCheck() {
+
+    }
+
+
 
     quantityTest(INPUT_OBJECTS) {
         let result = true
@@ -82,3 +120,4 @@ const inven = new Inventory([
 ])
 
 inven.isQuantitySufficient({ name: '콜라', quantity: 21 })
+inven.isPromotionExist({ name: '물', quantity: 3 })
