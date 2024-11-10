@@ -1,5 +1,6 @@
 import { findAllIndexes } from "./Functions.js"
-
+import Sale from "./Sale.js"
+import { readFileAndParse } from "./readMD.js"
 
 export default class Inventory {
     products = []
@@ -21,26 +22,34 @@ export default class Inventory {
 
     }
 
+    product(PRODUCT_INDEX) {
+        return this.products[PRODUCT_INDEX]
+    }
+
     promotion(INPUT_OBJECTS) {//[ { name: '콜라', quantity: 10 }, { name: '사이다', quantity: 3 } ]
-        INPUT_OBJECTS.forEach(OBJECT => {
-            this.promotionCheck(OBJECT)
+        INPUT_OBJECTS.forEach(INPUT_OBJECT => {
+            const PROMOTION_EXIST = this.isPromotionExist(INPUT_OBJECT)
+            const PRODUCT_INDEX = this.products.findIndex(product => product.name === INPUT_OBJECT.name)
+            this.promotionCheck(INPUT_OBJECT, PROMOTION_EXIST, PRODUCT_INDEX)
         })
     }
 
-    promotionCheck(OBJECT) {//{ name: '콜라', quantity: 10 }
-        const PROMOTION_EXIST = this.isPromotionExist(OBJECT)
+    promotionCheck(INPUT_OBJECT, PROMOTION_EXIST, PRODUCT_INDEX) {//boolean, number
+        const PROMOTION_PATH = './public/promotions.md'
+        const SALE = new Sale(readFileAndParse(PROMOTION_PATH))
+        const IN_PROGRESS = SALE.isInProgress(this.product(PRODUCT_INDEX))
 
-        if (PROMOTION_EXIST) {//한 개씩
-            if (dayOver) {
+        //한개씩 체크
+        if (PROMOTION_EXIST) {//프로모션 진행중
+            if (IN_PROGRESS) {
 
-            } else if (!dayOver) {
+            } else if (!IN_PROGRESS) {//프로모션 기간 끝남
 
             }
-        }
-
-        if (!PROMOTION_EXIST) {
+        } else if (!PROMOTION_EXIST) {//프로모션 해당 없음
 
         }
+        //return {index, buyNumber}
     }
 
     isPromotionExist(INPUT_OBJECT) {// object 하나 테스트
@@ -51,12 +60,6 @@ export default class Inventory {
         result = product && product.promotion !== MATCH_STRING //맞으면 true
         return result
     }
-
-    saleDayCheck() {
-
-    }
-
-
 
     quantityTest(INPUT_OBJECTS) {
         let result = true
@@ -121,3 +124,5 @@ const inven = new Inventory([
 
 inven.isQuantitySufficient({ name: '콜라', quantity: 21 })
 inven.isPromotionExist({ name: '물', quantity: 3 })
+const INPUT_OBJECTS = inven.inputExchanger('[콜라 - 10], [사이다-3]')
+inven.promotion(INPUT_OBJECTS)
