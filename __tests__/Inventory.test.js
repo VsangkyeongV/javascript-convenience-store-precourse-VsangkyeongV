@@ -1,10 +1,11 @@
 import Inventory from "../src/Inventory"
 import { readFileAndParse } from "../src/readMD.js"
 
-describe("재고관리", () => {
+describe("Inventory테스트", () => {
+    const PRODUCT_PATH = './public/products.md';
+    const INVEN = new Inventory(readFileAndParse(PRODUCT_PATH))
+
     test("재고 초기세팅", () => {
-        const PRODUCT_PATH = './public/products.md';
-        const INVEN = new Inventory(readFileAndParse(PRODUCT_PATH))
         const EXPECT_DATA = [
             { name: '콜라', price: '1000', quantity: '10', promotion: '탄산2+1' },
             { name: '콜라', price: '1000', quantity: '10', promotion: 'null' },
@@ -25,5 +26,36 @@ describe("재고관리", () => {
         ]
 
         expect(INVEN.products).toEqual(EXPECT_DATA)
+    })
+
+    test("inputExchanger test", () => {
+        const INPUT = '[콜라 - 10], [사이다-3]'
+        const EXPECT_DATA = [
+            { name: '콜라', quantity: 10 },
+            { name: '사이다', quantity: 3 }
+        ]
+        expect(INVEN.inputExchanger(INPUT)).toEqual(EXPECT_DATA)
+
+    })
+
+    test("findProductIndexes test", () => {
+        const INPUT = { name: '콜라', quantity: 10 }
+        const EXPECT_DATA = [0, 1]
+        expect(INVEN.findProductIndexes(INPUT)).toEqual(EXPECT_DATA)
+    })
+
+    test("isQuantitySufficient test", () => {
+        const INPUT = { name: '콜라', quantity: 20 }
+        const EXPECT_DATA = true
+        expect(INVEN.isQuantitySufficient(INPUT)).toBe(EXPECT_DATA)
+    })
+
+    test("quantityTest test", () => {
+        const INPUT = [
+            { name: '콜라', quantity: 20 },
+            { name: '사이다', quantity: 3 }
+        ]
+        const EXPECT_DATA = true
+        expect(INVEN.quantityTest(INPUT)).toEqual(EXPECT_DATA)
     })
 })
