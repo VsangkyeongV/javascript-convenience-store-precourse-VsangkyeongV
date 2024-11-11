@@ -65,9 +65,29 @@ describe("Inventory테스트", () => {
         expect(INVEN.isPromotionExist(INPUT)).toEqual(EXPECT_DATA)
     })
 
+    test("promotion test", () => {
+        const INPUT = [{ name: '콜라', quantity: 10 }, { name: '사이다', quantity: 3 }]
+        const EXPECT_DATA = [
+            {
+                name: "콜라",
+                sell: 10,
+                promotion: "탄산2+1",
+                freeGift: 0,
+            },
+            {
+                name: "사이다",
+                sell: 3,
+                promotion: "탄산2+1",
+                freeGift: 0,
+            }
+        ]
+        expect(INVEN.promotion(INPUT)).toEqual(EXPECT_DATA)
+    })
+
     // test("", () => {
     //     const INPUT = ''
     //     const EXPECT_DATA = ''
     //     expect(INVEN.quantityTest(INPUT)).toEqual(EXPECT_DATA)
     // })
+
 })

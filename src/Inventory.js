@@ -27,29 +27,30 @@ export default class Inventory {
     }
 
     promotion(INPUT_OBJECTS) {//[ { name: '콜라', quantity: 10 }, { name: '사이다', quantity: 3 } ]
+        let buyArr = []
         INPUT_OBJECTS.forEach(INPUT_OBJECT => {
             const PROMOTION_EXIST = this.isPromotionExist(INPUT_OBJECT)
             const PRODUCT_INDEX = this.products.findIndex(product => product.name === INPUT_OBJECT.name)
-            this.promotionCheck(INPUT_OBJECT, PROMOTION_EXIST, PRODUCT_INDEX)
+            buyArr.push(this.promotionCheck(INPUT_OBJECT, PROMOTION_EXIST, PRODUCT_INDEX))
         })
+        return buyArr.flat()
     }
 
-    promotionCheck(INPUT_OBJECT, PROMOTION_EXIST, PRODUCT_INDEX) {//boolean, number
+    promotionCheck(INPUT_OBJECT, PROMOTION_EXIST, PRODUCT_INDEX) {//{ name: '콜라', quantity: 10 }, boolean, number
         const PROMOTION_PATH = './public/promotions.md'
         const SALE = new Sale(readFileAndParse(PROMOTION_PATH))
         const IN_PROGRESS = SALE.isInProgress(this.product(PRODUCT_INDEX))
 
         //한개씩 체크
-        if (PROMOTION_EXIST) {//프로모션 진행중
-            if (IN_PROGRESS) {
-
+        if (PROMOTION_EXIST) {//프로모션 해당 있음
+            if (IN_PROGRESS) {//프로모션 진행중
+                return SALE.preceedPromotion(INPUT_OBJECT, this.product(PRODUCT_INDEX))//프로모션 체크
             } else if (!IN_PROGRESS) {//프로모션 기간 끝남
-
+                return SALE.endPromotion(INPUT_OBJECT, this.product(PRODUCT_INDEX))
             }
         } else if (!PROMOTION_EXIST) {//프로모션 해당 없음
-
+            return { name: INPUT_OBJECT.name, sell: INPUT_OBJECT.quantity, promotion: 'null' }//일반재고 소모
         }
-        //return {index, buyNumber}
     }
 
     isPromotionExist(INPUT_OBJECT) {// object 하나 테스트
