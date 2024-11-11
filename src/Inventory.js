@@ -5,6 +5,7 @@ import { readFileAndParse } from "./readMD.js"
 export default class Inventory {
     products = []
 
+
     constructor(PRODUCTS) {
         this.products = PRODUCTS
         // this.buy()
@@ -18,9 +19,25 @@ export default class Inventory {
             throw new Error()
         }
 
-        promotion(INPUT_OBJECTS)
-
+        const BUY_ARRAY = promotion(INPUT_OBJECTS)
+        this.buyConfirm(BUY_ARRAY)
     }
+
+    isMemberShip(input) {
+        if (input == 'Y') {
+            return true
+        }
+        if (input == 'X') {
+            return false
+        }
+    }
+
+    buyConfirm(BUY_ARRAY) {
+        BUY_ARRAY.forEach((buyObject) => {
+
+        })
+    }
+
 
     product(PRODUCT_INDEX) {
         return this.products[PRODUCT_INDEX]
@@ -31,7 +48,19 @@ export default class Inventory {
         INPUT_OBJECTS.forEach(INPUT_OBJECT => {
             const PROMOTION_EXIST = this.isPromotionExist(INPUT_OBJECT)
             const PRODUCT_INDEX = this.products.findIndex(product => product.name === INPUT_OBJECT.name)
-            buyArr.push(this.promotionCheck(INPUT_OBJECT, PROMOTION_EXIST, PRODUCT_INDEX))
+            let result;
+
+            // `needMore` 속성이 발견되면 수량을 업데이트하고 다시 promotionCheck를 호출합니다.
+            do {
+                result = this.promotionCheck(INPUT_OBJECT, PROMOTION_EXIST, PRODUCT_INDEX);
+                if (result.needMore) {
+                    INPUT_OBJECT.quantity += Number(result.needMore); // 수량을 추가
+                }
+                if (!result.needMore) {
+                    buyArr.push(result)
+                }
+            } while (result.needMore); // `needMore`가 없을 때까지 반복
+
         })
         return buyArr.flat()
     }
@@ -44,7 +73,10 @@ export default class Inventory {
         //한개씩 체크
         if (PROMOTION_EXIST) {//프로모션 해당 있음
             if (IN_PROGRESS) {//프로모션 진행중
+
                 return SALE.preceedPromotion(INPUT_OBJECT, this.product(PRODUCT_INDEX))//프로모션 체크
+
+
             } else if (!IN_PROGRESS) {//프로모션 기간 끝남
                 return SALE.endPromotion(INPUT_OBJECT, this.product(PRODUCT_INDEX))
             }
@@ -125,5 +157,5 @@ const inven = new Inventory([
 
 inven.isQuantitySufficient({ name: '콜라', quantity: 21 })
 inven.isPromotionExist({ name: '물', quantity: 3 })
-const INPUT_OBJECTS = inven.inputExchanger('[콜라 - 10], [사이다-3]')
+const INPUT_OBJECTS = inven.inputExchanger('[콜라 - 10], [사이다-3], [오렌지주스-1]')
 inven.promotion(INPUT_OBJECTS)

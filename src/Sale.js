@@ -17,13 +17,13 @@ export default class Sale {
         const BROUGHT_CHECK = this.broughtCheck(INPUT_OBJECT, product)
         const BROUGHT_LACK = BROUGHT_CHECK.isLack
         const GET_MORE = BROUGHT_CHECK.getMore
-        const FREE_GIFT = this.calFreeGift(product)
+        const FREE_GIFT = this.calFreeGift(INPUT_OBJECT, product)
         const REMAIN_NUMBER = Number(this.findPromotion(product).buy) + Number(this.findPromotion(product).get)
 
         switch (PROMOTION_QUANTITY_IS_SUFFICIENT) {
             case 'sufficient':
                 if (BROUGHT_LACK) {
-                    throw new Error(`현재 ${INPUT_OBJECT.name}은(는) ${GET_MORE}개를 무료로 더 받을 수 있습니다. 추가하시겠습니까? (Y/N)`)
+                    return { message: `현재 ${INPUT_OBJECT.name}은(는) ${GET_MORE}개를 무료로 더 받을 수 있습니다. 추가하시겠습니까? (Y/N)`, needMore: GET_MORE };
                 }
                 return [{ name: INPUT_OBJECT.name, sell: INPUT_OBJECT.quantity, promotion: product.promotion, freeGift: FREE_GIFT }]
             case 'lack':
@@ -45,10 +45,18 @@ export default class Sale {
         }
     }
 
-    calFreeGift(product) {
-        const PROMOTION_QUANTITY = product.quantity
-        const PROMOTION_CONDITION = this.findPromotion(product).buy + this.findPromotion(product).get
-        return parseInt(PROMOTION_QUANTITY / PROMOTION_CONDITION)
+    calFreeGift(INPUT_OBJECT, product) {
+        const BUY_AMOUNT = Number(this.findPromotion(product).buy) // 프로모션 조건의 구매 수량
+        const FREE_AMOUNT = Number(this.findPromotion(product).get) // 프로모션 조건의 무료 제공 수량
+        let inputQuantity = Number(INPUT_OBJECT.quantity)
+        let freeGift = 0
+
+        while (BUY_AMOUNT + FREE_AMOUNT <= inputQuantity) {
+            inputQuantity -= (BUY_AMOUNT + FREE_AMOUNT)
+            freeGift += 1
+        }
+
+        return freeGift
     }
 
     broughtCheck(INPUT_OBJECT, product) {

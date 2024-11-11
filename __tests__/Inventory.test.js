@@ -66,23 +66,30 @@ describe("Inventory테스트", () => {
     })
 
     test("promotion test", () => {
-        const INPUT = [{ name: '콜라', quantity: 10 }, { name: '사이다', quantity: 3 }]
+        const INPUT = [{ name: '콜라', quantity: 10 }, { name: '사이다', quantity: 3 }, { name: '오렌지주스', quantity: 1 }]
         const EXPECT_DATA = [
             {
                 name: "콜라",
                 sell: 10,
                 promotion: "탄산2+1",
-                freeGift: 0,
+                freeGift: 3,
             },
             {
                 name: "사이다",
                 sell: 3,
                 promotion: "탄산2+1",
-                freeGift: 0,
+                freeGift: 1,
+            },
+            {
+                name: "오렌지주스",
+                sell: 2,
+                promotion: "MD추천상품",
+                freeGift: 1
             }
         ]
         expect(INVEN.promotion(INPUT)).toEqual(EXPECT_DATA)
     })
+
 
     // test("", () => {
     //     const INPUT = ''
