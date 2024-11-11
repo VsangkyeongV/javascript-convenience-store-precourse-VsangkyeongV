@@ -1,6 +1,8 @@
 import { findAllIndexes } from "./Functions.js"
 import Sale from "./Sale.js"
+import { handleNonPromotionProcess, handlePromotionProcess, MemberShipProcess } from "./View/inputView.js"
 import { readFileAndParse } from "./readMD.js"
+
 
 export default class Inventory {
     products = []
@@ -11,8 +13,11 @@ export default class Inventory {
         // this.buy()
     }
 
-    buy(inputString) {
-        const INPUT_OBJECTS = this.inputExchanger(inputString)
+    get STOCK() {
+        return this.products
+    }
+
+    buy(INPUT_OBJECTS) {
         const QUANTITY_SUFFICIENT = this.quantityTest(INPUT_OBJECTS)//하나라도 false면 false
 
         if (!QUANTITY_SUFFICIENT) {//재고부족
@@ -20,22 +25,47 @@ export default class Inventory {
         }
 
         const BUY_ARRAY = promotion(INPUT_OBJECTS)
-        this.buyConfirm(BUY_ARRAY)
+        const BILL = this.buyProcess(BUY_ARRAY)
+
+        BILL = this.MemberShip(BILL)
+        return [BILL, BUY_ARRAY]
     }
 
-    isMemberShip(input) {
-        if (input == 'Y') {
+    MemberShip(BILL) {
+        const IS_MEMBERSHIP = this.isMemberShip()
+        const DISCOUNT_AMOUNT = 30 / 100
+        if (IS_MEMBERSHIP) {
+            BILL.memberShipDiscount = BILL.nonDiscountAmount * DISCOUNT_AMOUNT
+        }
+        return BILL
+    }
+
+
+    isMemberShip() {
+        const RESPONSE = MemberShipProcess()
+        if (RESPONSE == 'Y' || RESPONSE == 'y') {
             return true
         }
-        if (input == 'X') {
+        if (RESPONSE == 'N') {
             return false
         }
     }
 
-    buyConfirm(BUY_ARRAY) {
-        BUY_ARRAY.forEach((buyObject) => {
+    buyProcess(...BUY_ARRAY) {
+        let totalPurchase = 0
+        let discountAmount = 0
+        let nonDiscountAmount = 0
 
+        BUY_ARRAY.forEach(buyObject => {
+            const SOLD_PRODUCT_INDEX = this.products.findIndex(object => object.name == buyObject.name && object.promotion == buyObject.promotion)//인덱스찾기
+            Number(this.products[SOLD_PRODUCT_INDEX].quantity) -= buyObject.sell //팔기
+            totalPurchase += Number(this.products[SOLD_PRODUCT_INDEX].price) * buyObject.sell//물품당 구매총액
+            discountAmount -= Number(this.products[SOLD_PRODUCT_INDEX].price) * buyObject.freeGift// 할인 금액      
+            if (buyObject.promotion == 'null' || buyObject.nonPromotion) {//할인 아닐때
+                nonDiscountAmount += Number(this.products[SOLD_PRODUCT_INDEX].price) * buyObject.sell//프로모션 제외 금액
+            }
         })
+        return { totalPurchase, discountAmount, nonDiscountAmount }
     }
 
 
@@ -52,17 +82,35 @@ export default class Inventory {
 
             // `needMore` 속성이 발견되면 수량을 업데이트하고 다시 promotionCheck를 호출합니다.
             do {
-                result = this.promotionCheck(INPUT_OBJECT, PROMOTION_EXIST, PRODUCT_INDEX);
-                if (result.needMore) {
-                    INPUT_OBJECT.quantity += Number(result.needMore); // 수량을 추가
-                }
-                if (!result.needMore) {
-                    buyArr.push(result)
-                }
-            } while (result.needMore); // `needMore`가 없을 때까지 반복
+                result = this.promotionCheck(INPUT_OBJECT, PROMOTION_EXIST, PRODUCT_INDEX)
+                this.promotionResponseCheck(INPUT_OBJECT, result, buyArr)
+            } while (result.needMore) // `needMore`가 없을 때까지 반복
 
         })
         return buyArr.flat()
+    }
+
+    promotionResponseCheck(INPUT_OBJECT, result, buyArr) {
+        const NONPROMOTION_OBJECT = result.find(object => object.nonPromotion);
+        if (NONPROMOTION_OBJECT) {
+            const IS_RE_PURCHASE = handleNonPromotionProcess(NONPROMOTION_OBJECT.name, NONPROMOTION_OBJECT.nonPromotion)
+            if (IS_RE_PURCHASE) {//Y
+                buyArr.push(result)
+            } else {
+                const nonPROMOTION_OBJECT_INDEX = result.findIndex(object => object.nonPromotion)
+                result.splice(nonPROMOTION_OBJECT_INDEX, nonPROMOTION_OBJECT_INDEX + 1)
+                buyArr.push(result)
+            }
+        } else if (result.needMore) {
+            const IS_RE_PURCHASE = handlePromotionProcess(result.name, result.needMore)
+            if (IS_RE_PURCHASE) { //Y
+                INPUT_OBJECT.quantity += Number(result.needMore)
+            } else {//N
+                result.needMore = undefined// 기존 원하는 구매대로 진행
+            }
+        } else if (!result.needMore) {
+            buyArr.push(result)
+        }
     }
 
     promotionCheck(INPUT_OBJECT, PROMOTION_EXIST, PRODUCT_INDEX) {//{ name: '콜라', quantity: 10 }, boolean, number
@@ -117,20 +165,6 @@ export default class Inventory {
 
     findProductIndexes(buyObject) {// { name: '콜라', quantity: 10 }
         return findAllIndexes(this.products, product => product.name === buyObject.name)
-    }
-
-    inputExchanger(buyString) {//'[콜라 - 10], [사이다-3]'
-        const MATCH = /[\[\]]/g
-        const SEPARATOR = '-'
-        return buyString
-            .split("],") // 아이템 단위로 나누기
-            .map(item => {
-                const [namePart, quantityPart] = item.replace(MATCH, "").split(SEPARATOR)
-                return {
-                    name: namePart.trim(),
-                    quantity: Number(quantityPart.trim())
-                }
-            })
     }
 
 }

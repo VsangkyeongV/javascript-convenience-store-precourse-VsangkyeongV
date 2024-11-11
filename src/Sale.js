@@ -23,20 +23,20 @@ export default class Sale {
         switch (PROMOTION_QUANTITY_IS_SUFFICIENT) {
             case 'sufficient':
                 if (BROUGHT_LACK) {
-                    return { message: `현재 ${INPUT_OBJECT.name}은(는) ${GET_MORE}개를 무료로 더 받을 수 있습니다. 추가하시겠습니까? (Y/N)`, needMore: GET_MORE };
+                    return { name: INPUT_OBJECT.name, needMore: GET_MORE };
                 }
                 return [{ name: INPUT_OBJECT.name, sell: INPUT_OBJECT.quantity, promotion: product.promotion, freeGift: FREE_GIFT }]
             case 'lack':
                 if (FREE_GIFT != 0) {//프로모션 적용 가능
                     return [
                         { name: INPUT_OBJECT.name, sell: FREE_GIFT * REMAIN_NUMBER, promotion: product.promotion, freeGift: FREE_GIFT },//프로모션 적용 재고 소모
-                        { name: INPUT_OBJECT.name, sell: product.quantity - FREE_GIFT * REMAIN_NUMBER, promotion: product.promotion },//프로모션 미적용 재고 소모
+                        { name: INPUT_OBJECT.name, sell: product.quantity - FREE_GIFT * REMAIN_NUMBER, promotion: product.promotion, nonPromotion: product.quantity - FREE_GIFT * REMAIN_NUMBER },//프로모션 미적용 재고 소모
                         { name: INPUT_OBJECT.name, sell: INPUT_OBJECT.quantity - product.quantity, promotion: 'null' }//일반 재고 소모
                     ]
                 }
                 if (FREE_GIFT == 0) {//프로모션 적용 불가
                     return [
-                        { name: INPUT_OBJECT.name, sell: product.quantity, promotion: product.promotion },//미적용 재고 소모
+                        { name: INPUT_OBJECT.name, sell: product.quantity, promotion: product.promotion, nonPromotion: product.quantity },//미적용 재고 소모
                         { name: INPUT_OBJECT.name, sell: INPUT_OBJECT.quantity - product.quantity, promotion: 'null' }//일반 재고 소모
                     ]
                 }
